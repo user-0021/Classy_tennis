@@ -5,6 +5,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <string>
 #include <vector>
 
 #define bit_set(n) (1<<n)
@@ -72,7 +73,7 @@ namespace ascii_display {
 		/// @brief 描画オブジェクトの座標(座標の点はビットマップの左上です)
 		ascii_pos pos;
 		/// @brief 描画オブジェクトのansiコード
-		char* ansi_code;
+		std::string* ansi_code;
 	} ascii_object;	
 
 
@@ -89,11 +90,35 @@ namespace ascii_display {
 		Display(const uint8_t &width,const uint8_t &height);
 		/// @brief 生成された描画オブジェクト等を破棄します
 		~Display();
+		/// @brief 画面をクリアします。描画オブジェクトの破棄は行われません。
+		void clear();
+		/// @brief 描画を更新します
+		void update();
+		/// @brief 指定ビットで指定範囲を塗りつぶします
+		/// @param begine[in] 塗りつぶす方形範囲の左上座標
+		/// @param end[in] 塗りつぶす方形範囲の右下座標
+		/// @param bit[in] 塗りつぶすビット
+		void fill(const ascii_pos &begine,const ascii_pos &end,const ascii_bit &bit);
 		/// @brief 描画オブジェクトを追加します
 		/// @param bitmap[in] 追加するオブジェクトのビットマップ
 		/// @param pos[in] 追加するオブジェクトの座標
 		/// @return uint8_t 追加したオブジェクトのハンドルを返します。0が帰るとオブジェクトの追加の失敗を意味します
 		ASCII_HANDLE add_object(const ascii_bitmap &bitmap,const ascii_pos &pos);
+		/// @brief 描画オブジェクトを削除します
+		/// @param handle[in] 削除するオブジェクトのハンドル
+		void remove_object(const ASCII_HANDLE &handle);
+		/// @brief 描画オブジェクトを最前面に移動します。
+		/// @param handle[in] 移動するオブジェクトのハンドル
+		void object_move_front(const ASCII_HANDLE &handle);
+		/// @brief 2つの描画オブジェクトの座標を入れ替えます。
+		/// @param handle_1[in] 入れ替えるオブジェクトのハンドル 
+		/// @param handle_2[in] 入れ替えるオブジェクトのハンドル 
+		void object_swap_pos(const ASCII_HANDLE &handle_1,const ASCII_HANDLE &handle_2);
+		/// @brief 描画オブジェクトの座標を更新します
+		/// @param handle[in] 更新するオブジェクトのハンドル
+		/// @param pos[in] 更新する座標
+		void object_update_pos(const ASCII_HANDLE &handle,const ascii_pos &pos);
+
 
 	private:
 		/// @brief 描画エリアの横幅
@@ -103,4 +128,14 @@ namespace ascii_display {
 		/// @brief 描画オブジェクトのリスト
 		std::vector<ascii_object> _object_list;
 	};
+
+	/// @brief ascii_bitmapをファイルに書き込みます。
+	/// @param path[in] 書き込むファイルのパス
+	/// @param bitmap[in] 書き込むビットマップ
+	void write_ascii_bitmap(const std::string &path,const ascii_bitmap &bitmap);
+	/// @brief ascii_bitmapをファイルから読み込みます
+	/// @note bitmapは十分なサイズのbitmapArrayが確保されている必要があります。
+	/// @param path[in] 読み込むファイルのパス
+	/// @param bitmap[in,out] 読み込んだbitmapの保存先
+	void read_ascii_bitmap(const std::string &path,ascii_bitmap *bitmap);
 }
