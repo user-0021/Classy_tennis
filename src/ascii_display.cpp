@@ -59,12 +59,22 @@ namespace ascii_display {
 				}
 				else{
 					//削除せずにフラグの更新が可能なら
-					ansi_code += "\033["  + ansi_from_flag(bit.flag & ~last_flag);	
-					if(bit.font_color != last_font_color)
-						ansi_code += ";38;2;" + ansi_from_color(bit.font_color);
-					if(bit.back_color != last_back_color)
-						ansi_code += ";48;2;" + ansi_from_color(bit.back_color);
-					ansi_code += "m";
+					bool update = false;
+
+					if(bit.flag != last_flag){
+						ansi_code += "\033["  + ansi_from_flag(bit.flag & ~last_flag);	
+						update = true;
+					}
+					if(bit.font_color != last_font_color){
+						ansi_code += ";38;2;" + ansi_from_color(bit.font_color);	
+						update = true;
+					}
+					if(bit.back_color != last_back_color){
+						ansi_code += ";48;2;" + ansi_from_color(bit.back_color);	
+						update = true;
+					}
+					if(update)
+						ansi_code += "m";
 				}
 
 				//各種パラメータの更新
@@ -76,7 +86,7 @@ namespace ascii_display {
 			}
 		}
 
-		std::cout << ansi_code << std::endl;
+		std::cout << ansi_code << "\033[0m" << std::endl;
 
 		//この後エンコード文字列は特に編集されないのでHeapにChar配列で置く
 		std::size_t encoded_size = ansi_code.size()+1;
