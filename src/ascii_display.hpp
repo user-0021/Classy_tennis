@@ -129,13 +129,18 @@ namespace ascii_display {
 		std::vector<ascii_object> _object_list;
 	};
 
-	/// @brief ascii_bitmapをファイルに書き込みます。
+	/// @brief ascii_bitmapをasciiファイルに書き込みます。
 	/// @param path[in] 書き込むファイルのパス
 	/// @param bitmap[in] 書き込むビットマップ
 	void write_ascii_bitmap(const std::string &path,const ascii_bitmap &bitmap);
-	/// @brief ascii_bitmapをファイルから読み込みます
+	/// @brief ascii_bitmapをasciiファイルから読み込みます
 	/// @note bitmapは十分なサイズのbitmapArrayが確保されている必要があります。
 	/// @param path[in] 読み込むファイルのパス
 	/// @param bitmap[in,out] 読み込んだbitmapの保存先
-	void read_ascii_bitmap(const std::string &path,ascii_bitmap *bitmap);
+	void read_ascii_bitmap(const std::string &path,ascii_bitmap &bitmap);
+	/// @brief ascii_bitmapをbmpファイルから読み込みます
+	/// @note bitmapは十分なサイズのbitmapArrayが確保されている必要があります。
+	/// @param path[in] 読み込むファイルのパス
+	/// @param bitmap読み込んだbitmapの保存先
+	void read_ascii_bitmap_from_bmp(const std::string &path,ascii_bitmap &bitmap);
 }

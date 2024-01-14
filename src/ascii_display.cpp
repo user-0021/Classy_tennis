@@ -9,6 +9,7 @@
 #define IF_ADD(b,l,r) if(b) l += r;
 #define STR_FROM_ASCII(v) std::string({(char)(v),'\0'})
 #define DEC_STR_FROM_8BIT(v) (STR_FROM_ASCII('0' + (v)/100) + STR_FROM_ASCII('0'+ (((v)/10)%10)) + STR_FROM_ASCII('0' + ((v)%10)))
+#define SET_ASCII_BIT(bit,a,f,f_c,f_b) bit.ascii=a;bit.flag=f;bit.font_color=f_c;bit.back_color=f_b
 
 namespace ascii_display {
 	
@@ -275,29 +276,93 @@ namespace ascii_display {
 		}
 	}
 	
-	void read_ascii_bitmap(const std::string &path,ascii_bitmap *bitmap){
+	void read_ascii_bitmap(const std::string &path,ascii_bitmap &bitmap){
 		std::ifstream ascii_binary;
 
 		ascii_binary.open(path,std::ios_base::in | std::ios_base::binary);
 		
 		if(!ascii_binary.is_open()){
-			throw "in write_ascii_bitmap: failed open "+path;
+			throw "in read_ascii_bitmap: failed open "+path;
 		}
 
-		ascii_binary.read((char*)&bitmap->width,1);
-		ascii_binary.read((char*)&bitmap->height,1);
+		ascii_binary.read((char*)&bitmap.width,1);
+		ascii_binary.read((char*)&bitmap.height,1);
 		
 		uint16_t i;
-		uint16_t bitmap_size = bitmap->width * bitmap->height;
+		uint16_t bitmap_size = bitmap.width * bitmap.height;
 		for(i = 0;i < bitmap_size;i++){
 			char work_buff[8];
 			ascii_binary.read(work_buff,8);
 			
-			bitmap->bit_array[i].ascii = work_buff[0]; 
-			bitmap->bit_array[i].flag  = work_buff[1];
+			bitmap.bit_array[i].ascii = work_buff[0]; 
+			bitmap.bit_array[i].flag  = work_buff[1];
 			
-			bitmap->bit_array[i].font_color = ((work_buff[2]&0xFF)<<16) | ((work_buff[3]&0xFF)<<8) | ((work_buff[4]&0xFF)<<0);
-			bitmap->bit_array[i].back_color = ((work_buff[5]&0xFF)<<16) | ((work_buff[6]&0xFF)<<8) | ((work_buff[7]&0xFF)<<0);
+			bitmap.bit_array[i].font_color = ((work_buff[2]&0xFF)<<16) | ((work_buff[3]&0xFF)<<8) | ((work_buff[4]&0xFF)<<0);
+			bitmap.bit_array[i].back_color = ((work_buff[5]&0xFF)<<16) | ((work_buff[6]&0xFF)<<8) | ((work_buff[7]&0xFF)<<0);
+		}
+	}
+	
+	void read_ascii_bitmap_from_bmp(const std::string &path,ascii_bitmap &bitmap){
+		std::ifstream ascii_binary;
+
+		ascii_binary.open(path,std::ios_base::in | std::ios_base::binary);
+
+		if(!ascii_binary.is_open()){
+			throw "in read_ascii_bitmap_from_bmp: failed open "+path;
+		}
+
+		uint32_t heder_size;
+		uint32_t width;
+		int32_t height;
+		uint16_t bit_count;
+		uint32_t bit_commpression = 0;
+
+		ascii_binary.ignore(14);//ヘッダサイズ以外スキップ
+		ascii_binary.read((char*)&heder_size,4);
+		if(heder_size == 40){//windows
+			ascii_binary.read((char*)&width,4);
+			ascii_binary.read((char*)&height,4);
+			ascii_binary.ignore(2);
+			ascii_binary.read((char*)&bit_count,2);
+			ascii_binary.read((char*)&bit_commpression,4);
+			ascii_binary.ignore(20);
+		}else{//OS/2
+			width = 0;
+			ascii_binary.read((char*)&width,2);
+			ascii_binary.read((char*)&height,2);
+			ascii_binary.ignore(2);
+			ascii_binary.read((char*)&bit_count,2);
+			ascii_binary.ignore(24);
+			
+			//負の数なら上位2バイトを1で埋める(int32_tへの変換)
+			height = height | (((int32_t)(0 - ((height >> 15) & 1)))&0xFFFF0000);
+		}
+
+		//対応しないフォーマット
+		if(bit_commpression != 0 || bit_count != 24){
+			throw "in read_ascii_bitmap_from_bmp: no support format";
+		}			
+		
+		//アラインの計算
+		uint8_t align = (4 - ((width * 3) % 4))%4;
+		
+		//2つのスペースで1pixelなので
+		width *= 2;
+		
+		//画像読み込み
+		bitmap.width = width;
+		bitmap.height = height;
+		int i,j;
+		for(i = height - 1;i >= 0;i--){			
+			for(j = 0;j < width;j += 2){
+				uint32_t rgb = 0;
+				ascii_binary.read((char*)&rgb,3);
+				SET_ASCII_BIT(bitmap.bit_array[i*width + j],' ',0,0,rgb);
+				SET_ASCII_BIT(bitmap.bit_array[i*width + j + 1],' ',0,0,rgb);
+			}
+
+			if(align)
+				ascii_binary.ignore(align);
 		}
 	}
 	
