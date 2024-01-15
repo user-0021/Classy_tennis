@@ -11,4 +11,4 @@
 Linuxは現在未対応です。  
 ソースからビルドする場合、exeファイルをmodelフォルダの中に入れる必要があります。
 (実行ファイルが欲しい場合は[ここのwindows.7z](https://github.com/user-0021/Classy_tennis/releases/tag/v1.0.0))
-visula studio code のターミナルでは正常動作をしません。コマンドプロンプトなどで動作させてください。  
+visula studio code のターミナルでは正常動作をしません。直接実行もしくはコマンドプロンプトなどで動作させてください。
