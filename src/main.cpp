@@ -2,10 +2,10 @@
 #include <iostream>
 #include <signal.h>
 #include <math.h>
+#include <thread>
 
-#ifdef _WIN32
+#ifdef _WIN32//気が向いたらLinuxにも対応させる
 	#include <windows.h>
-	#define SLEEP(MS) Sleep(MS)
 #endif
 
 
@@ -18,6 +18,9 @@
 #define MODEL_RACKET "racket.ascii"
 #define MODEL_RESULT_WIN "youwin.ascii"
 #define MODEL_RESULT_LOOSE "youloose.ascii"
+
+#define SLEEP(MS) std::this_thread::sleep_for(std::chrono::milliseconds(MS))
+
 
 //移動可能な最大範囲(1次元)
 typedef struct{
